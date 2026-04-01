@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEGA Stationery Requisition System v4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --primary: #001D77;
+    --primary-light: #0a2fa8;
+    --accent: #E50000;
+    --accent-light: #ff2222;
+    --surface: #f5f6fa;
+    --surface-2: #ffffff;
+    --border: #dde3ed;
+    --text: #1a1a2e;
+    --text-muted: #5a6380;
+    --success: #16a34a;
+    --danger: #E50000;
+    --shadow: 0 4px 24px rgba(0,29,119,0.10);
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', 'IBM Plex Sans Thai', sans-serif;
+    background: linear-gradient(135deg, #e8ebf7 0%, #f5f6fa 60%, #fce8e8 100%);
+    min-height: 100vh;
+    color: var(--text);
+    font-size: 15px;
+  }
+
+  .header {
+    background: linear-gradient(90deg, #001D77 0%, #0a2fa8 70%, #001D77 100%);
+    color: white;
+    padding: 0;
+    box-shadow: 0 2px 16px rgba(0,29,119,0.30);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 28px;
+  }
+  .header-title { font-size: 18px; font-weight: 600; flex: 1; }
+  .header-subtitle { font-size: 13px; opacity: 0.8; }
+  .nav-tabs { display: flex; gap: 6px; margin-left: auto; }
+  .nav-tab {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .nav-tab:hover, .nav-tab.active { background: var(--accent); border-color: var(--accent); }
+
+  /* GAS Status Banner */
+  .gas-banner {
+    background: linear-gradient(90deg, #0f766e, #0d9488);
+    color: white;
+    text-align: center;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .gas-banner.error { background: linear-gradient(90deg, #991b1b, #dc2626); }
+  .gas-banner.checking { background: linear-gradient(90deg, #1e40af, #2563eb); }
+
+  .main { max-width: 1200px; margin: 32px auto; padding: 0 20px 60px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .card {
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 22px;
+  }
+  .card-header {
+    background: linear-gradient(90deg, #001D77 0%, #0a2fa8 100%);
+    color: white;
+    padding: 14px 24px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .card-body { padding: 22px 24px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #001D77;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    background: var(--surface);
+    color: var(--text);
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(37,99,168,0.10);
+    background: white;
+  }
+  .required { color: var(--danger); margin-left: 3px; }
+
+  .items-table-wrap { overflow-x: auto; }
+  table.items-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.items-table thead th {
+    background: #f1f5fb;
+    color: var(--primary);
+    padding: 10px 10px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    font-size: 13px;
+  }
+  table.items-table tbody tr { border-bottom: 1px solid #eef2f8; }
+  table.items-table tbody tr:hover { background: #f8faff; }
+  table.items-table td { padding: 8px 10px; vertical-align: middle; }
+  .item-name { font-weight: 500; }
+  .item-uom {
+    color: var(--text-muted); font-size: 12px;
+    background: #f1f5fb; padding: 2px 8px;
+    border-radius: 10px; display: inline-block;
+  }
+  input.qty-input {
+    width: 70px; text-align: center;
+    padding: 6px 4px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Sarabun', sans-serif; font-size: 14px; background: white;
+  }
+  input.qty-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 2px rgba(229,0,0,0.15); }
+  input.qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .category-section { margin-bottom: 18px; }
+  .category-toggle {
+    width: 100%; text-align: left;
+    background: #eef0f9; border: 1px solid #c5cbe8;
+    border-radius: 8px; padding: 11px 16px;
+    font-family: 'Sarabun', sans-serif; font-size: 15px; font-weight: 600;
+    color: #001D77; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: background 0.15s; margin-bottom: 0;
+  }
+  .category-toggle:hover { background: #dde2f4; }
+  .category-toggle .arrow { margin-left: auto; transition: transform 0.2s; }
+  .category-toggle.open .arrow { transform: rotate(180deg); }
+  .category-content { display: none; padding-top: 4px; }
+  .category-content.open { display: block; }
+
+  .remark-input {
+    width: 100%; padding: 6px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Sarabun', sans-serif; font-size: 14px;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 28px; border-radius: 8px;
+    font-family: 'Sarabun', sans-serif; font-size: 15px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.2s; text-decoration: none;
+  }
+  .btn-primary { background: linear-gradient(90deg, #001D77 0%, #0a2fa8 100%); color: white; box-shadow: 0 2px 8px rgba(0,29,119,0.25); }
+  .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn-accent { background: linear-gradient(90deg, #E50000 0%, #ff2222 100%); color: white; }
+  .btn-accent:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-outline { background: white; color: #001D77; border: 2px solid #001D77; }
+  .btn-outline:hover { background: #001D77; color: white; }
+  .btn-success { background: var(--success); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-group { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 18px; }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .alert {
+    padding: 14px 18px; border-radius: 8px; margin-bottom: 16px;
+    font-size: 14px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .alert-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+  .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+  .alert-warning { background: #fffbeb; border: 1px solid #fed7aa; color: #92400e; }
+  .alert-danger { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+
+  /* Progress spinner */
+  .spinner {
+    width: 20px; height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* QR */
+  .qr-center { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; gap: 22px; }
+  #qrcode canvas, #qrcode img { border-radius: 12px; }
+  .qr-label { font-size: 18px; font-weight: 700; color: #001D77; text-align: center; }
+  .qr-url { font-size: 13px; color: var(--text-muted); word-break: break-all; text-align: center; max-width: 380px; }
+  .qr-instructions { background: #eef0f9; border: 1px solid #c5cbe8; border-radius: 10px; padding: 16px 24px; max-width: 400px; width: 100%; color: #001D77; font-size: 14px; line-height: 2; }
+
+  /* Report */
+  .report-filters { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
+  .report-filters .form-group { min-width: 160px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 22px; }
+  .stat-card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 18px 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--primary); line-height: 1; }
+  .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+  .stat-card.accent .stat-value { color: var(--accent); }
+
+  table.report-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.report-table thead th { background: #001D77; color: white; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 13px; white-space: nowrap; }
+  table.report-table tbody tr:nth-child(even) { background: #f8fafc; }
+  table.report-table tbody tr:hover { background: #eff6ff; }
+  table.report-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .dept-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #eff6ff; color: var(--primary); }
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .status-pending { background: #fef9c3; color: #92400e; }
+  .status-approved { background: #dcfce7; color: #166534; }
+  .status-rejected { background: #fee2e2; color: #991b1b; }
+  .price-input { width: 90px; text-align: right; padding: 6px 8px; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'Sarabun', sans-serif; font-size: 14px; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 16px; max-width: 520px; width: 100%; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: modalIn 0.22s ease; }
+  @keyframes modalIn { from { transform: scale(0.92) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+  .modal-title { font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 14px; }
+  .modal-body { color: var(--text-muted); font-size: 15px; margin-bottom: 22px; line-height: 1.7; }
+  .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 30px; right: 30px; background: #1e293b; color: white; padding: 14px 22px; border-radius: 10px; font-size: 15px; z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transform: translateY(80px); opacity: 0; transition: all 0.3s; max-width: 360px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+  .add-remark-btn { background: none; border: 1.5px dashed var(--primary-light); border-radius: 8px; padding: 8px 18px; color: var(--primary); cursor: pointer; font-family: 'Sarabun', sans-serif; font-size: 14px; margin-top: 8px; width: 100%; transition: all 0.15s; }
+  .add-remark-btn:hover { background: #eff6ff; }
+
+  /* Upload area */
+  #upload-area { border: 2px dashed #c5cbe8; border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f8fafc; }
+  #upload-area:hover { background: #eef0f9; border-color: #001D77; }
+
+  /* Sheet connection indicator */
+  .sheet-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600;
+    color: white; white-space: nowrap;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
+  .dot.red { background: #f87171; }
+  .dot.yellow { background: #fbbf24; animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  @media (max-width: 700px) {
+    .nav-tabs { display: none; }
+    .header-inner { flex-wrap: wrap; }
+    .main { padding: 0 8px 40px; }
+    .card-body { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div style="display:flex;align-items:center;flex-shrink:0;">
+      <img src="data:image/png;base64,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" alt="MEGA Bangna" style="height:48px; border-radius:6px; display:block;">
+    </div>
+    <div>
+      <div class="header-title">ระบบเบิกวัสดุสำนักงาน</div>
+      <div class="header-subtitle">Standard Stationery Requisition System v4</div>
+    </div>
+    <div id="sheet-status" class="sheet-badge" style="margin-right:8px;">
+      <span class="dot yellow" id="status-dot"></span>
+      <span id="status-text">กำลังเชื่อมต่อ...</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('form', this)">📋 แบบฟอร์มเบิก</button>
+      <button class="nav-tab" onclick="showPage('qr', this)">📱 QR Code</button>
+      <button class="nav-tab" onclick="showPage('approval', this)">✅ อนุมัติการเบิก</button>
+      <button class="nav-tab" onclick="showPage('report', this)">📊 รายงานประจำเดือน</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- FORM PAGE -->
+  <div class="page active" id="page-form">
+
+    <div class="card">
+      <div class="card-header"><span>👤</span> ข้อมูลผู้เบิก</div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>ชื่อ <span class="required">*</span></label>
+            <input type="text" id="req-firstname" placeholder="ชื่อ">
+          </div>
+          <div class="form-group">
+            <label>นามสกุล <span class="required">*</span></label>
+            <input type="text" id="req-lastname" placeholder="นามสกุล">
+          </div>
+          <div class="form-group">
+            <label>แผนก <span class="required">*</span></label>
+            <select id="req-dept" onchange="onDeptChange()">
+              <option value="">-- เลือกแผนก --</option>
+              <option value="MKT">MKT – Marketing</option>
+              <option value="OPS">OPS – Operations</option>
+              <option value="HRA">HRA – HR & Admin</option>
+              <option value="FAP">FAP – Finance & Accounting (Payable)</option>
+              <option value="FAL">FAL – Finance & Accounting (Leasing)</option>
+              <option value="LES">LES – Leasing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>อีเมล์ผู้เบิก <span class="required">*</span></label>
+            <input type="email" id="req-email" placeholder="yourname@mega-bangna.com">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>วันที่เบิก</label>
+            <input type="date" id="req-date">
+          </div>
+          <div class="form-group">
+            <label>อีเมล์ผู้อนุมัติ (VP แผนก)</label>
+            <input type="email" id="req-approver-email" readonly placeholder="-- จะกรอกอัตโนมัติ --" style="background:#f1f5fb; color:var(--text-muted);">
+          </div>
+        </div>
+        <div id="dept-info" class="alert alert-info" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span>📦</span> รายการวัสดุที่ต้องการเบิก</div>
+      <div class="card-body">
+        <div class="alert alert-warning">
+          ⚠️ กรุณากรอกจำนวนเฉพาะรายการที่ต้องการเบิกเท่านั้น (ระบุ 0 หรือเว้นว่างหากไม่ต้องการ)
+        </div>
+
+        <div class="category-section">
+          <button class="category-toggle open" onclick="toggleCat(this)">✏️ Writing and Correction — เครื่องเขียนและลบ<span class="arrow">▼</span></button>
+          <div class="category-content open"><div class="items-table-wrap"><table class="items-table"><thead><tr><th>#</th><th>รายการ</th><th>หน่วย</th><th>จำนวน</th></tr></thead><tbody id="cat-writing"></tbody></table></div></div>
+        </div>
+
+        <div class="category-section">
+          <button class="category-toggle open" onclick="toggleCat(this)">📎 Glue, Tape and Packing / Office Stationery — กาว เทป อุปกรณ์สำนักงาน<span class="arrow">▼</span></button>
+          <div class="category-content open"><div class="items-table-wrap"><table class="items-table"><thead><tr><th>#</th><th>รายการ</th><th>หน่วย</th><th>จำนวน</th></tr></thead><tbody id="cat-office"></tbody></table></div></div>
+        </div>
+
+        <div class="category-section">
+          <button class="category-toggle open" onclick="toggleCat(this)">📄 Paper, Pad and Envelope — กระดาษ โน้ต และซอง<span class="arrow">▼</span></button>
+          <div class="category-content open"><div class="items-table-wrap"><table class="items-table"><thead><tr><th>#</th><th>รายการ</th><th>หน่วย</th><th>จำนวน</th></tr></thead><tbody id="cat-paper"></tbody></table></div></div>
+        </div>
+
+        <div class="category-section">
+          <button class="category-toggle open" onclick="toggleCat(this)">🗂️ Filing and Storage — แฟ้ม อุปกรณ์จัดเก็บ และอื่นๆ<span class="arrow">▼</span></button>
+          <div class="category-content open"><div class="items-table-wrap"><table class="items-table"><thead><tr><th>#</th><th>รายการ</th><th>หน่วย</th><th>จำนวน</th></tr></thead><tbody id="cat-filing"></tbody></table></div></div>
+        </div>
+
+        <div class="card-header" style="border-radius:8px 8px 0 0; margin-top:18px; background:linear-gradient(90deg,#0f766e,#0d9488);">
+          <span>📝</span> หมายเหตุ — วัสดุ/อุปกรณ์นอกเหนือจากรายการ
+        </div>
+        <div style="background:white; border:1px solid var(--border); border-radius:0 0 8px 8px; padding:14px;">
+          <div class="items-table-wrap">
+            <table class="items-table">
+              <thead><tr><th>#</th><th>ระบุรายการที่ต้องการ</th><th>หน่วย</th><th>จำนวน</th><th>ลบ</th></tr></thead>
+              <tbody id="remark-tbody"></tbody>
+            </table>
+          </div>
+          <button class="add-remark-btn" onclick="addRemarkRow()">+ เพิ่มรายการพิเศษ / นอกรายการ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div id="gas-info-alert" class="alert alert-info">
+          📧 เมื่อกด "ส่งคำขอเบิก" ระบบจะบันทึกลง Google Sheets และส่ง Email ไปยัง VP แผนกเพื่ออนุมัติ
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" id="submit-btn" onclick="submitForm()">📤 ส่งคำขอเบิก</button>
+          <button class="btn btn-outline" onclick="clearForm()">🔄 ล้างข้อมูล</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR PAGE -->
+  <div class="page" id="page-qr">
+    <div class="card">
+      <div class="card-header"><span>📱</span> QR Code สำหรับแบบฟอร์มเบิกวัสดุ</div>
+      <div class="card-body">
+        <div class="qr-center">
+          <div id="qrcode"></div>
+          <div class="qr-label">สแกน QR เพื่อเข้าสู่แบบฟอร์มเบิกวัสดุ</div>
+          <div class="qr-url" id="qr-url-display"></div>
+          <div class="qr-instructions">
+            <strong>วิธีใช้งาน:</strong><br>
+            1. เปิดกล้องโทรศัพท์หรือแอป QR Scanner<br>
+            2. สแกน QR Code ด้านบน<br>
+            3. กรอกข้อมูลการเบิกในแบบฟอร์ม<br>
+            4. กด "ส่งคำขอเบิก" เพื่อส่งให้ VP อนุมัติ<br>
+            5. รอรับอีเมล์ยืนยันการอนุมัติ
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="downloadQR()">⬇️ ดาวน์โหลด QR Code</button>
+            <button class="btn btn-outline" onclick="printQR()">🖨️ พิมพ์ QR Code</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPROVAL PAGE -->
+  <div class="page" id="page-approval">
+    <div class="card">
+      <div class="card-header"><span>✅</span> อนุมัติ / ไม่อนุมัติ คำขอเบิกวัสดุ</div>
+      <div class="card-body">
+        <div id="approval-waiting" style="text-align:center; padding:40px 20px; color:var(--text-muted);">
+          <div style="font-size:56px; margin-bottom:16px;">📋</div>
+          <div style="font-size:16px; font-weight:600; color:var(--primary); margin-bottom:8px;">รอรับคำขอเบิกจากพนักงาน</div>
+          <div style="font-size:14px; line-height:1.8;">เมื่อพนักงานส่งคำขอเบิก VP จะได้รับอีเมล์พร้อม Link<br>กด Link ในอีเมล์เพื่อเข้าสู่หน้านี้และดำเนินการอนุมัติครับ</div>
+        </div>
+        <div id="approval-form-area" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT PAGE -->
+  <div class="page" id="page-report">
+    <div class="card">
+      <div class="card-header"><span>📊</span> รายงานสรุปการเบิกวัสดุประจำเดือน</div>
+      <div class="card-body">
+        <div class="report-filters">
+          <div class="form-group">
+            <label>เดือน</label>
+            <select id="filter-month">
+              <option value="0">มกราคม</option><option value="1">กุมภาพันธ์</option>
+              <option value="2">มีนาคม</option><option value="3">เมษายน</option>
+              <option value="4">พฤษภาคม</option><option value="5">มิถุนายน</option>
+              <option value="6">กรกฎาคม</option><option value="7">สิงหาคม</option>
+              <option value="8">กันยายน</option><option value="9">ตุลาคม</option>
+              <option value="10">พฤศจิกายน</option><option value="11">ธันวาคม</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ปี</label>
+            <select id="filter-year">
+              <option value="2025">2025</option><option value="2026" selected>2026</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>แผนก</label>
+            <select id="filter-dept">
+              <option value="">ทุกแผนก</option>
+              <option value="MKT">MKT</option><option value="OPS">OPS</option>
+              <option value="HRA">HRA</option><option value="FAP">FAP</option>
+              <option value="FAL">FAL</option><option value="LES">LES</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadReport()">🔍 แสดงรายงาน</button>
+          <button class="btn btn-accent btn-sm" onclick="loadReportFromSheet()">☁️ ดึงข้อมูลจาก Sheet</button>
+          <button class="btn btn-outline btn-sm" onclick="sendMonthlyReport()">📧 ส่งรายงานให้ฝ่ายจัดซื้อ</button>
+        </div>
+        <div class="stats-grid" id="report-stats"></div>
+        <div class="items-table-wrap">
+          <table class="report-table" id="report-table">
+            <thead>
+              <tr>
+                <th>#</th><th>วันที่</th><th>แผนก</th><th>ชื่อผู้เบิก</th>
+                <th>รายการ</th><th>หมวดหมู่</th><th>หน่วย</th><th>จำนวน</th>
+                <th>ราคาต่อหน่วย (฿)</th><th>รวม (฿)</th><th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="report-tbody">
+              <tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:40px;">กรุณาเลือกเดือนและปีแล้วกด "แสดงรายงาน"</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:14px; display:flex; justify-content:flex-end;">
+          <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇️ Export CSV</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================================================
+// CONFIG — Google Apps Script Web App URL
+// =====================================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyu8aJqrnKjs2LIzlPtaky8pvj814yQyVheG1jspypltrtGGLQu-HHjAGJth-RudUDA/exec';
+const FORM_URL = 'https://nongnuch251818.github.io/Mega-Form/mega-stationery-test.html';
+
+// =====================================================
+// DEPT CONFIG
+// =====================================================
+const DEPT_VP = {
+  MKT: { name: 'Marketing', email: 'wanwimon@mega-bangna.com', vp: 'VP Marketing' },
+  OPS: { name: 'Operations', email: 'phornphan@mega-bangna.com', vp: 'VP Operations' },
+  HRA: { name: 'HR & Admin', email: 'nongnuch@mega-bangna.com', vp: 'VP HR & Admin' },
+  FAP: { name: 'Finance & Accounting (Payable)', email: 'chaiyasith@mega-bangna.com', vp: 'VP Finance (Payable)' },
+  FAL: { name: 'Finance & Accounting (Leasing)', email: 'kittikhun@mega-bangna.com', vp: 'VP Finance (Leasing)' },
+  LES: { name: 'Leasing', email: 'pimjai@mega-bangna.com', vp: 'VP Leasing' },
+};
+const SUPPLY_EMAIL = 'imboon@mega-bangna.com';
+const PURCHASE_MGR = 'nongnuch@mega-bangna.com';
+
+// =====================================================
+// ITEMS DATA
+// =====================================================
+const ITEMS = {
+  writing: [
+    { name: 'ปากกาลูกลื่นสีน้ำเงิน', uom: 'ด้าม' },
+    { name: 'ปากกาลูกลื่นสีแดง', uom: 'ด้าม' },
+    { name: 'ปากกาลูกลื่นสีดำ', uom: 'ด้าม' },
+    { name: 'ปากกาเน้นข้อความสีเขียว', uom: 'แท่ง' },
+    { name: 'ปากกาเน้นข้อความสีชมพู', uom: 'แท่ง' },
+    { name: 'ปากกาเน้นข้อความสีเหลือง', uom: 'แท่ง' },
+    { name: 'ปากกาเน้นข้อความสีฟ้า', uom: 'แท่ง' },
+    { name: 'ปากกาเน้นข้อความสีส้ม', uom: 'แท่ง' },
+    { name: 'ปากกาเน้นข้อความสีม่วง', uom: 'แท่ง' },
+    { name: 'ปากกาเขียน CD สีแดง', uom: 'ด้าม' },
+    { name: 'ปากกาเขียน CD สีดำ', uom: 'ด้าม' },
+    { name: 'ปากกาเขียน CD สีน้ำเงิน', uom: 'ด้าม' },
+    { name: 'ปากกาไวท์บอร์ด สีน้ำเงิน', uom: 'แท่ง' },
+    { name: 'ปากกาไวท์บอร์ด สีแดง', uom: 'แท่ง' },
+    { name: 'ปากกาไวท์บอร์ด สีดำ', uom: 'แท่ง' },
+    { name: 'ปากกาเมจิ สีน้ำเงิน', uom: 'แท่ง' },
+    { name: 'ปากกาเมจิ สีแดง', uom: 'แท่ง' },
+    { name: 'ปากกาเมจิ สีดำ', uom: 'แท่ง' },
+    { name: 'ปากกาเคมี 2 หัว น้ำเงิน', uom: 'แท่ง' },
+    { name: 'ปากกาเคมี 2 หัว ดำ', uom: 'แท่ง' },
+    { name: 'ปากกาชุดตั้งโต๊ะ', uom: 'ชุด' },
+    { name: 'ดินสอไม้ HB', uom: 'แท่ง' },
+    { name: 'ปากกาลบคำผิด Pentel', uom: 'แท่ง' },
+    { name: 'เครื่องเหลาดินสอ', uom: 'อัน' },
+    { name: 'ยางลบดินสอ', uom: 'ก้อน' },
+  ],
+  office: [
+    { name: 'แท่นตัดเทปขนาดใหญ่ แกน 3 นิ้ว', uom: 'อัน' },
+    { name: 'แท่นตัดเทปขนาดเล็ก แกน 1 นิ้ว', uom: 'อัน' },
+    { name: 'เทปใส แกนใหญ่ 1"*36y Unitape (1*6)', uom: 'ม้วน' },
+    { name: 'เทปใส แกนเล็ก 3/4"*36y Unitape (1*8)', uom: 'ม้วน' },
+    { name: 'สก็อตเทปขาวขุ่น (เมจิกเทป)', uom: 'ม้วน' },
+    { name: 'เทปเยื่อ 2 หน้า ขนาด 1/2 นิ้ว', uom: 'ม้วน' },
+    { name: 'เทปเยื่อ 2 หน้า ขนาด 1/4 นิ้ว', uom: 'ม้วน' },
+    { name: 'เทปเยื่อ 2 หน้า ขนาด 3/4 นิ้ว', uom: 'ม้วน' },
+    { name: 'เทปผ้า ขนาด 1 นิ้ว (คละสี)', uom: 'ม้วน' },
+    { name: 'เทปผ้า ขนาด 2 นิ้ว (คละสี)', uom: 'ม้วน' },
+    { name: 'เทปโฟมกาว 2 หน้า/3M 3 meters', uom: 'ม้วน' },
+    { name: 'กาวแท่ง UHU ขนาด 10 กรัม', uom: 'แท่ง' },
+    { name: 'มีดคัตเตอร์', uom: 'อัน' },
+    { name: 'ใบมีดคัตเตอร์', uom: 'ใบ' },
+    { name: 'กรรไกร ขนาด 6 นิ้ว', uom: 'อัน' },
+    { name: 'ไม้บรรทัดพลาสติก 12 นิ้ว', uom: 'อัน' },
+    { name: 'ไม้บรรทัดฟุต เหล็ก 12 นิ้ว', uom: 'อัน' },
+    { name: 'เครื่องเย็บกระดาษ เบอร์ 10', uom: 'อัน' },
+    { name: 'เครื่องเย็บกระดาษ เบอร์ 50', uom: 'อัน' },
+    { name: 'เครื่องเย็บกระดาษ เบอร์ 35', uom: 'อัน' },
+    { name: 'ลวดเย็บกระดาษ เบอร์ 10', uom: 'กล่อง' },
+    { name: 'ลวดเย็บกระดาษ เบอร์ 35', uom: 'กล่อง' },
+    { name: 'ที่ถอนลวดเย็บกระดาษ Eagle', uom: 'อัน' },
+    { name: 'เครื่องเจาะกระดาษ (เล็ก)', uom: 'อัน' },
+    { name: 'เครื่องเจาะกระดาษ (ใหญ่)', uom: 'อัน' },
+    { name: 'ลวดเสียบกระดาษ เบอร์ 1', uom: 'กล่อง' },
+    { name: 'ลวดเสียบกระดาษ เบอร์ 00', uom: 'กล่อง' },
+    { name: 'คลิปหนีบกระดาษ No.108', uom: 'กล่อง' },
+    { name: 'คลิปหนีบกระดาษ No.109', uom: 'กล่อง' },
+    { name: 'คลิปหนีบกระดาษ No.110', uom: 'กล่อง' },
+    { name: 'คลิปหนีบกระดาษ No.111', uom: 'กล่อง' },
+    { name: 'คลิปหนีบกระดาษ No.112', uom: 'กล่อง' },
+    { name: 'คลิปหนีบกระดาษ No.113', uom: 'กล่อง' },
+    { name: 'แท่นประทับ สีน้ำเงิน', uom: 'อัน' },
+    { name: 'แท่นประทับ สีแดง', uom: 'อัน' },
+    { name: 'หมึกเติมแท่นประทับ สีดำ', uom: 'ขวด' },
+    { name: 'หมึกเติมแท่นประทับ สีน้ำเงิน', uom: 'ขวด' },
+    { name: 'หมึกเติมแท่นประทับ สีแดง', uom: 'ขวด' },
+    { name: 'หมึกเติมตรายางวันที่ในตัว น้ำเงิน', uom: 'ขวด' },
+    { name: 'หมึกเติมตรายางวันที่ในตัว แดง', uom: 'ขวด' },
+    { name: 'ตรายางวันที่ ภาษาไทย', uom: 'อัน' },
+    { name: 'ตรายางวันที่ ภาษาอังกฤษ', uom: 'อัน' },
+    { name: 'ตรายางวันที่ ภาษาไทย (หมึกในตัว)', uom: 'อัน' },
+    { name: 'ตรายางวันที่ ภาษาอังกฤษ (หมึกในตัว)', uom: 'อัน' },
+    { name: 'แปรงลบกระดานไวท์บอร์ด', uom: 'อัน' },
+    { name: 'ขี้ผึ้งนับแบงค์', uom: 'ตลับ' },
+    { name: 'สมุดบัญชี 5/100', uom: 'เล่ม' },
+    { name: 'สมุด PEON BOOK', uom: 'เล่ม' },
+    { name: 'สมุดปกอ่อน', uom: 'เล่ม' },
+  ],
+  paper: [
+    { name: 'สมุดฉีกรายงาน ขนาด A4', uom: 'เล่ม' },
+    { name: 'สมุดเสนอเซ็นต์', uom: 'เล่ม' },
+    { name: 'Post-it แฟล็ก', uom: 'อัน' },
+    { name: 'Post-it โน๊ต 3M ขนาด 3x3 นิ้ว สีสด', uom: 'อัน' },
+    { name: 'Post-it โน๊ต 5 สี 670-5AN ขนาด 1.5*5 ซม.', uom: 'แพค' },
+    { name: 'Post-it โน๊ต ขนาด 2x3 นิ้ว', uom: 'อัน' },
+    { name: 'Post-it โน๊ต ขนาด 1.5x2 นิ้ว', uom: 'อัน' },
+    { name: 'กระดาษโน๊ต 1000 แผ่น 9*9 cm.', uom: 'อัน' },
+    { name: 'ซองจดหมาย สีขาว เบอร์ 9', uom: 'ซอง' },
+    { name: 'ซองน้ำตาล ขนาด A4 9*12', uom: 'ซอง' },
+    { name: 'ซองน้ำตาล ขยายข้าง ขนาด A4', uom: 'ซอง' },
+    { name: 'กระดาษฟลิปชาร์ท', uom: 'เล่ม' },
+    { name: 'ซองจดหมาย A3 Mega', uom: 'ซอง' },
+    { name: 'ซองจดหมาย A4 Mega', uom: 'ซอง' },
+    { name: 'ซองสำเร็จ เบอร์ 9 Mega เจาะหน้าต่าง', uom: 'ซอง' },
+    { name: 'ซองสำเร็จ เบอร์ 9 Mega', uom: 'ซอง' },
+    { name: 'ซองเอกสาร 7*10 นิ้ว Mega (A5)', uom: 'ซอง' },
+    { name: 'แฟ้มซองพลาสติก ขนาด A4', uom: 'ซอง' },
+    { name: 'แฟ้มซองพลาสติก 3 ชั้น ขนาด A4', uom: 'ซอง' },
+    { name: 'ซองถนอมเอกสาร 11 รู ขนาด A4', uom: 'ซอง' },
+  ],
+  filing: [
+    { name: 'แฟ้มก้านยก ขนาด 3 นิ้ว', uom: 'แฟ้ม' },
+    { name: 'แฟ้มก้านยก ขนาด 2 นิ้ว', uom: 'แฟ้ม' },
+    { name: 'แฟ้มโชว์เอกสาร สันรูด ขนาด A4', uom: 'แฟ้ม' },
+    { name: 'แฟ้มแขวน', uom: 'แฟ้ม' },
+    { name: 'แฟ้มพับกระดาษ ขนาด A4 Mega', uom: 'แฟ้ม' },
+    { name: 'แฟ้มเอกสาร A3', uom: 'แฟ้ม' },
+    { name: 'โครงเหล็กใส่แฟ้มแขวน', uom: 'อัน' },
+    { name: 'คลิปบอร์ดพลาสติก ขนาด A4', uom: 'อัน' },
+    { name: 'อินเด็กซ์พลาสติก 10 หยัก', uom: 'อัน' },
+    { name: 'อินเด็กซ์พลาสติก 12 หยัก', uom: 'อัน' },
+    { name: 'อินเด็กซ์พลาสติก 16 หยัก', uom: 'อัน' },
+    { name: 'กล่องเอกสารคางหมู ขนาด 4 นิ้ว', uom: 'กล่อง' },
+    { name: 'กล่องเอกสารคางหมู 3 ช่อง/12 นิ้ว', uom: 'กล่อง' },
+    { name: 'ลิ้นแฟ้ม สแตนเลส', uom: 'กล่อง' },
+    { name: 'สันห่วงพลาสติก ขนาด 6 มม.', uom: 'อัน' },
+    { name: 'สันห่วงพลาสติก ขนาด 8 มม.', uom: 'อัน' },
+    { name: 'สันห่วงพลาสติก ขนาด 10 มม.', uom: 'อัน' },
+    { name: 'สันห่วงพลาสติก ขนาด 12 มม.', uom: 'อัน' },
+    { name: 'สันห่วงพลาสติก ขนาด 14 มม.', uom: 'อัน' },
+    { name: 'สันห่วงพลาสติก ขนาด 16 มม.', uom: 'อัน' },
+    { name: 'สันห่วงพลาสติก ขนาด 19 มม.', uom: 'อัน' },
+    { name: 'สันห่วงพลาสติก ขนาด 20 มม.', uom: 'อัน' },
+    { name: 'ตะกร้าวางเอกสาร 3 ชั้น', uom: 'ชุด' },
+    { name: 'ตะกร้าใส่เอกสาร 2 ชั้น', uom: 'ชุด' },
+    { name: 'CD-R', uom: 'แผ่น' },
+    { name: 'DVD-R', uom: 'แผ่น' },
+    { name: 'ซองบรรจุ CD สีขาว', uom: 'ซอง' },
+    { name: 'ถ่านไฟฉาย AA', uom: 'ก้อน' },
+    { name: 'ถ่านไฟฉาย AAA', uom: 'ก้อน' },
+    { name: 'ถ่านไฟฉาย 9 V', uom: 'ก้อน' },
+    { name: 'เครื่องคิดเลข คาสิโอ J-120B', uom: 'อัน' },
+    { name: 'แผ่นเคลือบพลาสติก A4', uom: 'แผ่น' },
+    { name: 'แผ่นเคลือบพลาสติก A3', uom: 'แผ่น' },
+    { name: 'แผ่นใสทำปกพลาสติก A4', uom: 'แผ่น' },
+  ]
+};
+
+const CATEGORY_TH = { writing: 'Writing and Correction', office: 'Glue, Tape / Office Stationery', paper: 'Paper, Pad and Envelope', filing: 'Filing and Storage', remark: 'รายการพิเศษ' };
+
+// =====================================================
+// INIT
+// =====================================================
+window.onload = function() {
+  const today = new Date();
+  document.getElementById('req-date').value = today.toISOString().split('T')[0];
+  document.getElementById('filter-month').value = today.getMonth();
+  document.getElementById('filter-year').value = today.getFullYear();
+  renderItems('writing', 'cat-writing');
+  renderItems('office', 'cat-office');
+  renderItems('paper', 'cat-paper');
+  renderItems('filing', 'cat-filing');
+  addRemarkRow();
+  checkGASConnection();
+
+  // Check URL params for approval flow
+  const params = new URLSearchParams(window.location.search);
+  const action = params.get('action');
+  if (action === 'approve' || action === 'reject') {
+    setTimeout(() => {
+      showPage('approval', null);
+      document.querySelectorAll('.nav-tab').forEach(t => {
+        if (t.textContent.includes('อนุมัติ')) t.classList.add('active');
+        else t.classList.remove('active');
+      });
+      loadApprovalFromParams(params);
+    }, 200);
+  }
+};
+
+// =====================================================
+// GAS CONNECTION CHECK
+// =====================================================
+function checkGASConnection() {
+  setStatusChecking();
+  fetch(GAS_URL + '?action=ping', { method: 'GET', mode: 'no-cors' })
+    .then(() => {
+      // no-cors always resolves — assume connected
+      setStatusOnline();
+    })
+    .catch(() => {
+      setStatusOffline();
+    });
+}
+
+function setStatusChecking() {
+  document.getElementById('status-dot').className = 'dot yellow';
+  document.getElementById('status-text').textContent = 'กำลังเชื่อมต่อ...';
+}
+function setStatusOnline() {
+  document.getElementById('status-dot').className = 'dot';
+  document.getElementById('status-text').textContent = 'เชื่อมต่อ Google Sheets';
+}
+function setStatusOffline() {
+  document.getElementById('status-dot').className = 'dot red';
+  document.getElementById('status-text').textContent = 'ออฟไลน์';
+}
+
+// =====================================================
+// RENDER ITEMS
+// =====================================================
+function renderItems(cat, tbodyId) {
+  const tbody = document.getElementById(tbodyId);
+  ITEMS[cat].forEach((item, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--text-muted);font-size:12px;">${i+1}</td>
+      <td class="item-name">${item.name}</td>
+      <td><span class="item-uom">${item.uom}</span></td>
+      <td><input type="number" class="qty-input" min="0" placeholder="0" data-cat="${cat}" data-name="${item.name}" data-uom="${item.uom}"></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleCat(btn) {
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('open');
+}
+
+function onDeptChange() {
+  const dept = document.getElementById('req-dept').value;
+  const info = document.getElementById('dept-info');
+  const approverField = document.getElementById('req-approver-email');
+  if (dept && DEPT_VP[dept]) {
+    const vp = DEPT_VP[dept];
+    approverField.value = vp.email;
+    info.style.display = 'flex';
+    info.innerHTML = `ℹ️ แบบฟอร์มนี้จะส่งไปยัง <strong>${vp.vp}</strong> (${vp.email}) เพื่ออนุมัติ`;
+  } else {
+    approverField.value = '';
+    info.style.display = 'none';
+  }
+}
+
+let remarkCount = 0;
+function addRemarkRow() {
+  remarkCount++;
+  const tbody = document.getElementById('remark-tbody');
+  const tr = document.createElement('tr');
+  tr.id = `remark-${remarkCount}`;
+  tr.innerHTML = `
+    <td style="color:var(--text-muted);font-size:12px;">${remarkCount}</td>
+    <td><input type="text" class="remark-input" placeholder="ระบุรายการที่ต้องการ..." data-type="remark-name"></td>
+    <td><input type="text" class="remark-input" style="width:80px;" placeholder="หน่วย" data-type="remark-uom"></td>
+    <td><input type="number" class="qty-input" min="0" placeholder="0" data-type="remark-qty"></td>
+    <td style="text-align:center;"><button onclick="removeRemark(${remarkCount})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:18px;">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+function removeRemark(id) {
+  const el = document.getElementById(`remark-${id}`);
+  if (el) el.remove();
+}
+
+// =====================================================
+// SUBMIT — บันทึกลง Google Sheets + Email
+// =====================================================
+function submitForm() {
+  const fname = document.getElementById('req-firstname').value.trim();
+  const lname = document.getElementById('req-lastname').value.trim();
+  const dept = document.getElementById('req-dept').value;
+  const email = document.getElementById('req-email').value.trim();
+  const date = document.getElementById('req-date').value;
+
+  if (!fname || !lname || !dept || !email) {
+    showModal('⚠️ ข้อมูลไม่ครบถ้วน', 'กรุณากรอกชื่อ นามสกุล แผนก และอีเมล์ให้ครบถ้วน', [
+      { label: 'ตกลง', style: 'btn-primary', action: 'closeModal()' }
+    ]);
+    return;
+  }
+
+  // Collect items
+  const selected = [];
+  document.querySelectorAll('.qty-input[data-cat]').forEach(input => {
+    const qty = parseInt(input.value) || 0;
+    if (qty > 0) selected.push({ cat: input.dataset.cat, name: input.dataset.name, uom: input.dataset.uom, qty });
+  });
+
+  const remarks = [];
+  document.querySelectorAll('#remark-tbody tr').forEach(tr => {
+    const nameEl = tr.querySelector('[data-type="remark-name"]');
+    const uomEl = tr.querySelector('[data-type="remark-uom"]');
+    const qtyEl = tr.querySelector('[data-type="remark-qty"]');
+    if (nameEl && nameEl.value.trim() && qtyEl && parseInt(qtyEl.value) > 0) {
+      remarks.push({ name: nameEl.value.trim(), uom: uomEl ? uomEl.value.trim() : '', qty: parseInt(qtyEl.value) });
+    }
+  });
+
+  if (selected.length === 0 && remarks.length === 0) {
+    showModal('⚠️ ไม่มีรายการเบิก', 'กรุณาระบุจำนวนอย่างน้อย 1 รายการที่ต้องการเบิก', [
+      { label: 'ตกลง', style: 'btn-primary', action: 'closeModal()' }
+    ]);
+    return;
+  }
+
+  const vp = DEPT_VP[dept];
+  const reqId = Date.now().toString();
+  const allItems = [...selected.map(i=>({name:i.name,uom:i.uom,qty:i.qty,cat:i.cat})), ...remarks.map(r=>({name:r.name,uom:r.uom,qty:r.qty,cat:'remark'}))];
+
+  // Save locally as backup
+  const allReqs = JSON.parse(localStorage.getItem('mega_reqs') || '[]');
+  allReqs.push({ id: reqId, fname, lname, dept, email, date, selected, remarks, status: 'pending', submittedAt: new Date().toISOString() });
+  localStorage.setItem('mega_reqs', JSON.stringify(allReqs));
+
+  // Build approval links
+  // ฝังรายการใน URL เพื่อให้ VP เห็นรายการได้แม้เปิดจากเครื่องอื่น
+  const itemsParam = encodeURIComponent(JSON.stringify(allItems));
+  const approveLink = `${FORM_URL}?action=approve&id=${reqId}&name=${encodeURIComponent(fname+' '+lname)}&email=${encodeURIComponent(email)}&dept=${dept}&date=${encodeURIComponent(date)}&items=${itemsParam}`;
+  const rejectLink  = `${FORM_URL}?action=reject&id=${reqId}&name=${encodeURIComponent(fname+' '+lname)}&email=${encodeURIComponent(email)}&dept=${dept}&date=${encodeURIComponent(date)}&items=${itemsParam}`;
+
+  // === POST to Google Apps Script ===
+  const submitBtn = document.getElementById('submit-btn');
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+
+  const payload = {
+    action: 'submit',
+    id: reqId, fname, lname, dept, email, date,
+    items: allItems,
+    approveLink, rejectLink,
+    vpEmail: vp.email, vpName: vp.vp,
+    supplyEmail: SUPPLY_EMAIL
+  };
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '📤 ส่งคำขอเบิก';
+    openEmailToVP(fname, lname, dept, date, email, vp, allItems, approveLink, rejectLink, true);
+  })
+  .catch(err => {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '📤 ส่งคำขอเบิก';
+    console.error('GAS Error:', err);
+    openEmailToVP(fname, lname, dept, date, email, vp, allItems, approveLink, rejectLink, false);
+  });
+}
+
+// =====================================================
+// HELPER: เปิด Outlook ส่ง Email พร้อม Link อนุมัติ
+// =====================================================
+function openEmailToVP(fname, lname, dept, date, email, vp, allItems, approveLink, rejectLink, savedToSheet) {
+  const itemListText = allItems.map(i => `• ${i.name} (${i.uom}) x${i.qty}`).join('\n');
+  const subject = `[MEGA] คำขอเบิกวัสดุ - ${fname} ${lname} (${dept}) ${date}`;
+  const body =
+    `เรียน ${vp.vp}\n\n` +
+    `ผู้เบิก: ${fname} ${lname}\n` +
+    `แผนก: ${dept}\n` +
+    `วันที่: ${date}\n\n` +
+    `รายการที่ขอเบิก:\n${itemListText}\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `กรุณากดลิงก์ด้านล่างเพื่ออนุมัติ:\n\n` +
+    `✅ อนุมัติ:\n${approveLink}\n\n` +
+    `❌ ไม่อนุมัติ:\n${rejectLink}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `ระบบเบิกวัสดุ MEGA Bangna`;
+
+  const mailtoLink = `mailto:${vp.email}?cc=${encodeURIComponent(email + ';' + SUPPLY_EMAIL)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  const savedMsg = savedToSheet
+    ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;margin-bottom:12px;"><strong>✅ บันทึกลง Google Sheets เรียบร้อยแล้ว!</strong></div>`
+    : `<div style="background:#fffbeb;border:1px solid #fed7aa;border-radius:8px;padding:12px;margin-bottom:12px;">⚠️ บันทึกสำรองในเครื่องแล้ว</div>`;
+
+  showModal('📧 ส่ง Email ให้ VP อนุมัติ', `
+    ${savedMsg}
+    <div style="margin-bottom:12px;">
+      <strong>ผู้เบิก:</strong> ${fname} ${lname} (${dept})<br>
+      <strong>จำนวนรายการ:</strong> ${allItems.length} รายการ<br>
+      <strong>ส่งถึง VP:</strong> ${vp.vp} (${vp.email})
+    </div>
+    <div style="background:#eef0f9;border-radius:8px;padding:12px;font-size:13px;color:#001D77;">
+      📧 กดปุ่มด้านล่างเพื่อเปิด Outlook<br>
+      <strong>Email จะมี Link อนุมัติ/ไม่อนุมัติให้ VP กดได้เลย</strong><br>
+      VP กดลิงก์ → เปิดเว็บ → เข้าหน้าอนุมัติทันที ✅
+    </div>
+  `, [
+    { label: '❌ ปิด', style: 'btn-outline', action: 'closeModal(); clearForm();' },
+    { label: '📧 เปิด Outlook ส่ง Email', style: 'btn-primary', action: `window.location.href='${mailtoLink}'; setTimeout(()=>{closeModal(); clearForm();},1000);` }
+  ]);
+}
+
+function clearForm() {
+  document.getElementById('req-firstname').value = '';
+  document.getElementById('req-lastname').value = '';
+  document.getElementById('req-dept').value = '';
+  document.getElementById('req-email').value = '';
+  document.getElementById('req-approver-email').value = '';
+  document.getElementById('dept-info').style.display = 'none';
+  document.querySelectorAll('.qty-input').forEach(i => i.value = '');
+  document.getElementById('remark-tbody').innerHTML = '';
+  remarkCount = 0;
+  addRemarkRow();
+  document.getElementById('req-date').value = new Date().toISOString().split('T')[0];
+}
+
+// =====================================================
+// APPROVAL
+// =====================================================
+function loadApprovalFromParams(params) {
+  const action = params.get('action');
+  const reqId = params.get('id');
+  const reqName = decodeURIComponent(params.get('name') || '');
+  const reqEmail = decodeURIComponent(params.get('email') || '');
+  const dept = params.get('dept') || '';
+  const reqDate = decodeURIComponent(params.get('date') || '');
+
+  // ดึงรายการจาก URL params ก่อน (VP เปิดจากเครื่องอื่นได้)
+  let items = [];
+  try {
+    const itemsRaw = params.get('items');
+    if (itemsRaw) items = JSON.parse(decodeURIComponent(itemsRaw));
+  } catch(e) {}
+
+  // Fallback: ดึงจาก localStorage ถ้าไม่มีใน URL
+  if (items.length === 0) {
+    const allReqs = JSON.parse(localStorage.getItem('mega_reqs') || '[]');
+    const req = allReqs.find(r => String(r.id) === String(reqId));
+    if (req) items = [...(req.selected||[]), ...(req.remarks||[])];
+  }
+
+  const area = document.getElementById('approval-form-area');
+  document.getElementById('approval-waiting').style.display = 'none';
+  area.style.display = 'block';
+
+  area.innerHTML = `
+    <div style="background:#f5f6fa;border-radius:10px;padding:18px;margin-bottom:20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;display:block;">ชื่อผู้เบิก</span>
+          <span style="font-size:16px;font-weight:700;color:#001D77;">${reqName}</span></div>
+        <div><span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;display:block;">แผนก</span>
+          <span style="font-size:16px;font-weight:700;color:#001D77;">${dept}</span></div>
+        <div><span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;display:block;">อีเมล์</span>
+          <span style="font-size:14px;color:#334155;">${reqEmail}</span></div>
+        <div><span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;display:block;">วันที่</span>
+          <span style="font-size:14px;color:#334155;">${reqDate || new Date().toLocaleDateString('th-TH')}</span></div>
+      </div>
+    </div>
+    <div style="font-size:14px;font-weight:700;color:#001D77;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">รายการที่ขอเบิก</div>
+    ${items.length > 0 ? `
+    <div class="items-table-wrap" style="margin-bottom:22px;">
+      <table class="items-table">
+        <thead><tr><th>#</th><th>รายการ</th><th>หน่วย</th><th style="text-align:center;">จำนวน</th></tr></thead>
+        <tbody>${items.map((item,i)=>`<tr>
+          <td style="color:var(--text-muted);font-size:12px;">${i+1}</td>
+          <td class="item-name">${item.name}</td>
+          <td><span class="item-uom">${item.uom}</span></td>
+          <td style="text-align:center;font-weight:700;font-size:16px;color:var(--primary);">${item.qty}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>` : `<div class="alert alert-warning" style="margin-bottom:22px;">📧 กรุณาดูรายการในอีเมล์ที่ได้รับครับ</div>`}
+    <div id="approval-reject-box" style="display:none;margin-bottom:18px;">
+      <label style="font-weight:700;color:#E50000;font-size:14px;display:block;margin-bottom:8px;">❗ เหตุผลที่ไม่อนุมัติ <span style="color:#E50000;">*</span></label>
+      <textarea id="approval-reject-reason" rows="3" placeholder="กรุณาระบุเหตุผล..."
+        style="width:100%;border:1.5px solid #fca5a5;border-radius:8px;padding:10px 14px;font-family:'Sarabun',sans-serif;font-size:15px;resize:vertical;outline:none;box-sizing:border-box;"></textarea>
+    </div>
+    <div id="approval-done-msg"></div>
+    <div id="approval-btns" style="display:flex;gap:14px;justify-content:center;padding-top:8px;">
+      <button onclick="doApproveTab('${encodeURIComponent(reqName)}','${encodeURIComponent(reqEmail)}','${dept}','${reqId}')"
+        style="flex:1;padding:16px;border-radius:10px;border:none;background:linear-gradient(90deg,#16a34a,#15803d);color:white;font-family:'Sarabun',sans-serif;font-size:17px;font-weight:700;cursor:pointer;">
+        ✅ อนุมัติ
+      </button>
+      <button id="approval-reject-btn" onclick="showApprovalRejectBox('${encodeURIComponent(reqName)}','${encodeURIComponent(reqEmail)}','${dept}','${reqId}')"
+        style="flex:1;padding:16px;border-radius:10px;border:none;background:linear-gradient(90deg,#E50000,#c00);color:white;font-family:'Sarabun',sans-serif;font-size:17px;font-weight:700;cursor:pointer;">
+        ❌ ไม่อนุมัติ
+      </button>
+    </div>
+  `;
+}
+
+function showApprovalRejectBox(requester, requesterEmail, dept, reqId) {
+  document.getElementById('approval-reject-box').style.display = 'block';
+  const btn = document.getElementById('approval-reject-btn');
+  btn.textContent = '❌ ยืนยันไม่อนุมัติ';
+  btn.onclick = () => doRejectTab(requester, requesterEmail, dept, reqId);
+  document.getElementById('approval-reject-reason').focus();
+}
+
+function doApproveTab(requester, requesterEmail, dept, reqId) {
+  const reqName = decodeURIComponent(requester);
+  const ccEmail = decodeURIComponent(requesterEmail);
+  const itemRows = document.querySelectorAll('#approval-form-area table tbody tr');
+  let itemList = '';
+  itemRows.forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    if (cells.length >= 4) {
+      const name = cells[1] ? cells[1].textContent.trim() : '';
+      const uom = cells[2] ? cells[2].textContent.trim() : '';
+      const qty = cells[3] ? cells[3].textContent.trim() : '';
+      if (name) itemList += `• ${name} (${uom}) จำนวน ${qty}\n`;
+    }
+  });
+
+  // Update status in GAS
+  fetch(GAS_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'updateStatus', id: reqId, status: 'approved', approver: dept })
+  }).catch(() => {});
+
+  // Update localStorage
+  const allReqs = JSON.parse(localStorage.getItem('mega_reqs') || '[]');
+  const idx = allReqs.findIndex(r => String(r.id) === String(reqId));
+  if (idx >= 0) { allReqs[idx].status = 'approved'; localStorage.setItem('mega_reqs', JSON.stringify(allReqs)); }
+
+  const subject = `[MEGA] ✅ อนุมัติคำขอเบิกวัสดุ — ${reqName} (${dept})`;
+  const body = `เรียน ผู้ดูแลเบิกจ่าย\n\nคำขอเบิกวัสดุของ ${reqName} แผนก ${dept}\nได้รับการ ✅ อนุมัติ แล้วครับ/ค่ะ\n\nรายการที่อนุมัติ:\n${itemList || '(ดูรายละเอียดในอีเมล์ต้นฉบับ)'}\n\nกรุณาจัดเตรียมวัสดุให้แก่ผู้เบิกด้วยครับ\n\nขอบคุณครับ/ค่ะ\nระบบเบิกวัสดุ MEGA`;
+  const mailto = `mailto:${SUPPLY_EMAIL}?cc=${encodeURIComponent(ccEmail)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+  document.getElementById('approval-btns').style.display = 'none';
+  document.getElementById('approval-done-msg').innerHTML = `
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:20px;text-align:center;margin-bottom:16px;">
+      <div style="font-size:40px;margin-bottom:8px;">✅</div>
+      <div style="font-size:17px;font-weight:700;color:#166534;margin-bottom:6px;">อนุมัติเรียบร้อยแล้ว!</div>
+      <div style="font-size:14px;color:#64748b;line-height:1.8;">Outlook เปิดขึ้นมาพร้อมข้อความแล้ว<br>กรุณากด <strong>Send</strong> เพื่อแจ้งผู้ดูแลเบิกจ่ายครับ</div>
+    </div>`;
+}
+
+function doRejectTab(requester, requesterEmail, dept, reqId) {
+  const reason = document.getElementById('approval-reject-reason').value.trim();
+  if (!reason) {
+    document.getElementById('approval-reject-reason').style.borderColor = '#E50000';
+    document.getElementById('approval-reject-reason').focus();
+    return;
+  }
+  const reqName = decodeURIComponent(requester);
+  const toEmail = decodeURIComponent(requesterEmail);
+
+  // Update status
+  fetch(GAS_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'updateStatus', id: reqId, status: 'rejected', reason })
+  }).catch(() => {});
+
+  const allReqs = JSON.parse(localStorage.getItem('mega_reqs') || '[]');
+  const idx = allReqs.findIndex(r => String(r.id) === String(reqId));
+  if (idx >= 0) { allReqs[idx].status = 'rejected'; localStorage.setItem('mega_reqs', JSON.stringify(allReqs)); }
+
+  const subject = `[MEGA] ❌ ไม่อนุมัติคำขอเบิกวัสดุ — ${reqName} (${dept})`;
+  const body = `เรียน ${reqName}\n\nคำขอเบิกวัสดุของคุณ ❌ ไม่ได้รับการอนุมัติ\n\nเหตุผล: ${reason}\n\nหากมีข้อสงสัยกรุณาติดต่อ HR Admin\n\nขอบคุณครับ/ค่ะ\nระบบเบิกวัสดุ MEGA`;
+  const mailto = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+  document.getElementById('approval-btns').style.display = 'none';
+  document.getElementById('approval-reject-box').style.display = 'none';
+  document.getElementById('approval-done-msg').innerHTML = `
+    <div style="background:#fee2e2;border:1px solid #fecaca;border-radius:10px;padding:20px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:8px;">❌</div>
+      <div style="font-size:17px;font-weight:700;color:#991b1b;margin-bottom:6px;">ส่งผลไม่อนุมัติแล้ว!</div>
+    </div>`;
+}
+
+// =====================================================
+// QR CODE
+// =====================================================
+function generateQR() {
+  const display = document.getElementById('qr-url-display');
+  if (display) display.textContent = FORM_URL;
+  const qrDiv = document.getElementById('qrcode');
+  if (!qrDiv) return;
+  qrDiv.innerHTML = '';
+  try {
+    new QRCode(qrDiv, { text: FORM_URL, width: 260, height: 260, colorDark: '#001D77', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
+  } catch(e) {
+    qrDiv.innerHTML = '<p style="color:red;font-size:13px;">กรุณารอแล้วลองใหม่</p>';
+  }
+}
+
+function downloadQR() {
+  setTimeout(() => {
+    const canvas = document.querySelector('#qrcode canvas');
+    if (!canvas) { showToast('QR Code ยังโหลดไม่เสร็จ'); return; }
+    const link = document.createElement('a');
+    link.download = 'MEGA-Stationery-QR.png';
+    link.href = canvas.toDataURL();
+    link.click();
+    showToast('✅ ดาวน์โหลด QR Code แล้ว');
+  }, 100);
+}
+
+function printQR() {
+  const canvas = document.querySelector('#qrcode canvas');
+  if (!canvas) { showToast('QR Code ยังโหลดไม่เสร็จ'); return; }
+  const w = window.open();
+  w.document.write(`<html><body style="text-align:center;padding:40px;font-family:sans-serif;">
+    <h2 style="color:#001D77;">MEGA Bangna — แบบฟอร์มเบิกวัสดุสำนักงาน</h2>
+    <img src="${canvas.toDataURL()}" style="width:260px;margin:24px auto;display:block;border:2px solid #001D77;border-radius:10px;padding:8px;">
+    <p style="color:#888;font-size:12px;word-break:break-all;">${FORM_URL}</p>
+  </body></html>`);
+  w.print();
+}
+
+// =====================================================
+// REPORT — ดึงจาก localStorage + Sheet
+// =====================================================
+function loadReport() {
+  const month = parseInt(document.getElementById('filter-month').value);
+  const year = parseInt(document.getElementById('filter-year').value);
+  const dept = document.getElementById('filter-dept').value;
+  const monthNames = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+  const allReqs = JSON.parse(localStorage.getItem('mega_reqs') || '[]');
+  const filtered = allReqs.filter(r => {
+    const d = new Date(r.submittedAt);
+    return d.getMonth() === month && d.getFullYear() === year && (!dept || r.dept === dept);
+  });
+
+  const rows = [];
+  filtered.forEach(r => {
+    (r.selected || []).forEach(item => rows.push({ date: r.date, dept: r.dept, name: `${r.fname} ${r.lname}`, item: item.name, cat: item.cat, uom: item.uom, qty: item.qty, status: r.status }));
+    (r.remarks || []).forEach(item => rows.push({ date: r.date, dept: r.dept, name: `${r.fname} ${r.lname}`, item: item.name, cat: 'remark', uom: item.uom, qty: item.qty, status: r.status }));
+  });
+
+  const totalQty = rows.reduce((a, r) => a + r.qty, 0);
+  const depts = [...new Set(filtered.map(r => r.dept))];
+  document.getElementById('report-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${filtered.length}</div><div class="stat-label">คำขอเบิกทั้งหมด</div></div>
+    <div class="stat-card"><div class="stat-value">${rows.length}</div><div class="stat-label">รายการทั้งหมด</div></div>
+    <div class="stat-card"><div class="stat-value">${totalQty}</div><div class="stat-label">จำนวนรวม (ชิ้น)</div></div>
+    <div class="stat-card accent"><div class="stat-value">${depts.length}</div><div class="stat-label">แผนกที่เบิก</div></div>
+  `;
+
+  const tbody = document.getElementById('report-tbody');
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:40px;">ไม่มีข้อมูลสำหรับเดือน${monthNames[month]} ${year} ${dept ? '('+dept+')' : ''}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr>
+      <td>${i+1}</td><td>${r.date || '-'}</td>
+      <td><span class="dept-badge">${r.dept}</span></td>
+      <td>${r.name}</td><td>${r.item}</td>
+      <td>${CATEGORY_TH[r.cat] || r.cat}</td>
+      <td>${r.uom}</td>
+      <td style="text-align:center;font-weight:600;">${r.qty}</td>
+      <td><input type="number" class="price-input" placeholder="0.00" step="0.01" min="0" onchange="calcTotal(this)" data-qty="${r.qty}"></td>
+      <td class="total-cell" style="text-align:right;font-weight:600;">-</td>
+      <td><span class="status-badge status-${r.status}">${r.status==='pending'?'⏳ รอการอนุมัติ':r.status==='approved'?'✅ อนุมัติแล้ว':'❌ ปฏิเสธ'}</span></td>
+    </tr>`).join('');
+}
+
+function loadReportFromSheet() {
+  showToast('🔄 กำลังดึงข้อมูลจาก Google Sheets...');
+  fetch(GAS_URL + '?action=getHistory', { method: 'GET', mode: 'no-cors' })
+    .then(() => { showToast('✅ ดึงข้อมูลจาก Sheet แล้ว (ดูในแท็บ Report)'); loadReport(); })
+    .catch(() => { showToast('⚠️ ไม่สามารถดึงข้อมูลจาก Sheet ได้ แสดงข้อมูลจากเครื่องแทน'); loadReport(); });
+}
+
+function calcTotal(input) {
+  const qty = parseFloat(input.dataset.qty) || 0;
+  const price = parseFloat(input.value) || 0;
+  const total = qty * price;
+  input.closest('tr').querySelector('.total-cell').textContent = total > 0 ? total.toLocaleString('th-TH', { minimumFractionDigits: 2 }) : '-';
+}
+
+function sendMonthlyReport() {
+  const month = parseInt(document.getElementById('filter-month').value);
+  const year = parseInt(document.getElementById('filter-year').value);
+  const monthNames = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const allReqs = JSON.parse(localStorage.getItem('mega_reqs') || '[]');
+  const filtered = allReqs.filter(r => { const d = new Date(r.submittedAt); return d.getMonth() === month && d.getFullYear() === year; });
+  if (filtered.length === 0) { showToast('ไม่มีข้อมูลในเดือนนี้'); return; }
+  const byDept = {};
+  filtered.forEach(r => { if (!byDept[r.dept]) byDept[r.dept] = []; byDept[r.dept].push(r); });
+  let body = `สรุปรายงานการเบิกวัสดุสำนักงานประจำเดือน${monthNames[month]} ${year}\n\n`;
+  Object.entries(byDept).forEach(([dept, reqs]) => {
+    body += `=== แผนก ${dept} ===\n`;
+    reqs.forEach(r => {
+      body += `ผู้เบิก: ${r.fname} ${r.lname} (${r.date})\n`;
+      (r.selected||[]).forEach(i => body += `  - ${i.name}: ${i.qty} ${i.uom}\n`);
+      (r.remarks||[]).forEach(i => body += `  - [พิเศษ] ${i.name}: ${i.qty} ${i.uom}\n`);
+    });
+    body += '\n';
+  });
+  body += `\nรวมทั้งหมด: ${filtered.length} คำขอ\n\nขอบคุณครับ/ค่ะ\nระบบเบิกวัสดุ MEGA`;
+  const subject = `[MEGA] รายงานสรุปการเบิกวัสดุประจำเดือน${monthNames[month]} ${year}`;
+  window.open(`mailto:${PURCHASE_MGR}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+  showToast('✅ เปิด Email สรุปรายงานแล้ว');
+}
+
+function exportCSV() {
+  const rows = [];
+  document.querySelectorAll('#report-tbody tr').forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    if (cells.length > 5) {
+      const priceInput = tr.querySelector('.price-input');
+      rows.push([cells[0].textContent,cells[1].textContent,cells[2].textContent,cells[3].textContent,cells[4].textContent,cells[5].textContent,cells[6].textContent,cells[7].textContent,priceInput?priceInput.value:'',cells[9].textContent,cells[10].textContent].join(','));
+    }
+  });
+  if (rows.length === 0) { showToast('ไม่มีข้อมูลให้ export'); return; }
+  const header = '#,วันที่,แผนก,ผู้เบิก,รายการ,หมวดหมู่,หน่วย,จำนวน,ราคาต่อหน่วย,รวม,สถานะ';
+  const csv = '\uFEFF' + header + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'MEGA_Stationery_Report.csv';
+  link.click();
+  showToast('✅ Export CSV เรียบร้อยแล้ว');
+}
+
+// =====================================================
+// MODAL & TOAST
+// =====================================================
+function showModal(title, body, actions) {
+  document.getElementById('modal-title').innerHTML = title;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-actions').innerHTML = actions.map(a =>
+    `<button class="btn ${a.style}" onclick="${a.action}">${a.label}</button>`).join('');
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+document.getElementById('modal-overlay').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// =====================================================
+// NAV
+// =====================================================
+function showPage(name, tabEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  if (page) page.classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+  if (name === 'qr') generateQR();
+  if (name === 'report') loadReport();
+}
+</script>
+</body>
+</html>
